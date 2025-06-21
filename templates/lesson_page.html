@@ -12,15 +12,13 @@
             <li class="active">{{ lesson.title }}</li>
         </ol>
     </nav>
-
     <article class="lesson-content">
-        <h1>{{ lesson.title }}</h1>
-        <hr>
-        <div>
-            {# Використовуємо фільтр |safe, щоб HTML-теги з бази даних відображалися коректно #}
-            {{ lesson.content|safe }}
-        </div>
-    </article>
+            <h1>{{ lesson.title }}</h1>
+            <hr>
+            <div class="content-body">
+                {{ lesson.content|safe }}
+            </div>
+        </article>
 
     <style>
         /* Стилі для "хлібних крихт" */

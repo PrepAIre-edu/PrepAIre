@@ -12,6 +12,8 @@ db.init_app(app)
 def index():
     return render_template('index.html')
 
+# app.py
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -25,9 +27,17 @@ def register():
         new_user = User(username=username)
         new_user.set_password(password)
 
-        # Призначаємо роль модератора, якщо ім'я відповідає шаблону
-        if username.startswith('moderator_'):
+        # ↓↓↓ ОНОВЛЕНА ЛОГІКА ПРИЗНАЧЕННЯ РОЛЕЙ ↓↓↓
+        if username.startswith('moderator_ukr_'):
+            new_user.role = 'moderator_ukr'
+        elif username.startswith('moderator_mat_'):
+            new_user.role = 'moderator_mat'
+        elif username.startswith('moderator_ist_'):
+            new_user.role = 'moderator_ist'
+        elif username.startswith('moderator_'): # Цю перевірку ставимо останньою
             new_user.role = 'moderator'
+        else:
+            new_user.role = 'user'
             
         db.session.add(new_user)
         db.session.commit()
@@ -68,21 +78,39 @@ def subjects():
     all_subjects = Subject.query.all()
     return render_template('subjects.html', subjects=all_subjects)
 
+def check_permission(user_role, subject_slug):
+    if user_role == 'moderator':
+        return True
+    if user_role == 'moderator_ukr' and subject_slug == 'ukrainian-language':
+        return True
+    if user_role == 'moderator_mat' and subject_slug == 'mathematics':
+        return True
+    if user_role == 'moderator_ist' and subject_slug == 'history-of-ukraine':
+        return True
+    return False
+
 @app.route('/subject/<slug>')
 def subject_page(slug):
     subject = Subject.query.filter_by(slug=slug).first_or_404()
-    return render_template('subject_page.html', subject=subject)
+    user_role = session.get('role', 'guest') # Отримуємо роль, або 'guest' якщо не залогінений
+    # ↓↓↓ Передаємо в шаблон інформацію, чи може користувач редагувати ↓↓↓
+    can_edit = check_permission(user_role, subject.slug)
+    return render_template('subject_page.html', subject=subject, can_edit=can_edit)
+
 
 @app.route('/add_lesson/<subject_slug>', methods=['POST'])
 def add_lesson(subject_slug):
-    if session.get('role') != 'moderator':
-        flash('У вас немає прав для додавання уроків!', 'danger')
+    user_role = session.get('role')
+    # ↓↓↓ Використовуємо нашу нову функцію для перевірки ↓↓↓
+    if not check_permission(user_role, subject_slug):
+        flash('У вас немає прав для додавання уроків до цього предмету!', 'danger')
         return redirect(url_for('subject_page', slug=subject_slug))
     
+    # ... (решта логіки функції залишається без змін) ...
     subject = Subject.query.filter_by(slug=subject_slug).first_or_404()
     
     title = request.form['title']
-    slug = request.form['slug'] # ← Отримуємо slug з форми
+    slug = request.form['slug']
     content = request.form['content']
 
     if not title or not content or not slug:
