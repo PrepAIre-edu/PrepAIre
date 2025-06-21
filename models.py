@@ -22,8 +22,13 @@ class Subject(db.Model):
     description = db.Column(db.Text, nullable=False)
     lessons = db.relationship('Lesson', backref='subject', lazy=True, cascade="all, delete-orphan")
 
+# models.py
+
+# ... (код для User та Subject залишається без змін) ...
+
 class Lesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
+    slug = db.Column(db.String(200), unique=True, nullable=False) # Унікальна частина URL
     content = db.Column(db.Text, nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)

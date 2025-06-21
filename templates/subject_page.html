@@ -1,4 +1,4 @@
-{% extends "index.html" %}
+{% extends "base.html" %}
 {% block title %}{{ subject.name }}{% endblock %}
 {% block content %}
     <h1>Курс: {{ subject.name }}</h1>
@@ -10,8 +10,10 @@
         {% if subject.lessons %}
             {% for lesson in subject.lessons %}
             <div class="lesson">
-                <h3>{{ lesson.title }}</h3>
-                <p>{{ lesson.content|safe }}</p>
+                {# ↓↓↓ ЗМІНА ТУТ: тепер це посилання ↓↓↓ #}
+                <a href="{{ url_for('lesson_page', lesson_slug=lesson.slug) }}">
+                    <h3>{{ lesson.title }}</h3>
+                </a>
             </div>
             {% endfor %}
         {% else %}
@@ -27,6 +29,11 @@
             <div class="form-group">
                 <label for="title">Назва уроку:</label>
                 <input type="text" id="title" name="title" required>
+            </div>
+            {# ↓↓↓ НОВИЙ БЛОК ДЛЯ ВВЕДЕННЯ SLUG ↓↓↓ #}
+            <div class="form-group">
+                <label for="slug">URL-адреса уроку (латиницею, без пробілів):</label>
+                <input type="text" id="slug" name="slug" placeholder="napryklad-pershyi-urok" required>
             </div>
             <div class="form-group">
                 <label for="content">Зміст уроку (можна використовувати HTML-теги):</label>

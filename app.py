@@ -75,7 +75,6 @@ def subject_page(slug):
 
 @app.route('/add_lesson/<subject_slug>', methods=['POST'])
 def add_lesson(subject_slug):
-    # Перевірка, чи користувач є модератором
     if session.get('role') != 'moderator':
         flash('У вас немає прав для додавання уроків!', 'danger')
         return redirect(url_for('subject_page', slug=subject_slug))
@@ -83,13 +82,18 @@ def add_lesson(subject_slug):
     subject = Subject.query.filter_by(slug=subject_slug).first_or_404()
     
     title = request.form['title']
+    slug = request.form['slug'] # ← Отримуємо slug з форми
     content = request.form['content']
 
-    if not title or not content:
-        flash('Заголовок та зміст уроку не можуть бути порожніми.', 'warning')
+    if not title or not content or not slug:
+        flash('Всі поля (назва, URL, зміст) є обов\'язковими.', 'warning')
+        return redirect(url_for('subject_page', slug=subject_slug))
+
+    if Lesson.query.filter_by(slug=slug).first():
+        flash('Урок з такою URL-адресою вже існує. Виберіть іншу.', 'danger')
         return redirect(url_for('subject_page', slug=subject_slug))
         
-    new_lesson = Lesson(title=title, content=content, subject_id=subject.id)
+    new_lesson = Lesson(title=title, slug=slug, content=content, subject_id=subject.id)
     db.session.add(new_lesson)
     db.session.commit()
     
@@ -99,6 +103,11 @@ def add_lesson(subject_slug):
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
+@app.route('/lesson/<lesson_slug>')
+def lesson_page(lesson_slug):
+    lesson = Lesson.query.filter_by(slug=lesson_slug).first_or_404()
+    return render_template('lesson_page.html', lesson=lesson)
 
 if __name__ == '__main__':
     app.run(debug=True)
