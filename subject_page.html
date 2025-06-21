@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ subject.name }}{% endblock %}
+{% block content %}
+    <h1>Курс: {{ subject.name }}</h1>
+    <p class="course-description">{{ subject.description }}</p>
+    <hr>
+    
+    <h2>Уроки</h2>
+    <div class="lessons-list">
+        {% if subject.lessons %}
+            {% for lesson in subject.lessons %}
+            <div class="lesson">
+                <h3>{{ lesson.title }}</h3>
+                <p>{{ lesson.content|safe }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>Наразі уроків з цього предмету немає. Незабаром вони з'являться!</p>
+        {% endif %}
+    </div>
+
+    {% if session.get('role') == 'moderator' %}
+    <div class="moderator-panel">
+        <hr>
+        <h3>Панель модератора: додати новий урок</h3>
+        <form action="{{ url_for('add_lesson', subject_slug=subject.slug) }}" method="POST">
+            <div class="form-group">
+                <label for="title">Назва уроку:</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="content">Зміст уроку (можна використовувати HTML-теги):</label>
+                <textarea id="content" name="content" rows="8" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Додати урок</button>
+        </form>
+    </div>
+    {% endif %}
+{% endblock %}
