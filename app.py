@@ -9,8 +9,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def base():
+    return render_template('base.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -49,7 +49,7 @@ def login():
             session['username'] = user.username
             session['role'] = user.role
             flash('Вхід успішний!', 'success')
-            return redirect(url_for('index'))
+            return redirect(url_for('base'))
         else:
             flash('Неправильне ім\'я користувача або пароль.', 'danger')
             
@@ -61,7 +61,7 @@ def logout():
     session.pop('username', None)
     session.pop('role', None)
     flash('Ви вийшли з системи.', 'info')
-    return redirect(url_for('index'))
+    return redirect(url_for('base'))
 
 @app.route('/subjects')
 def subjects():
